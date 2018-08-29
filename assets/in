@@ -38,7 +38,8 @@ echo "Downloading from S3..."
 eval aws s3 sync "s3://$bucket/$path" $dest $options
 echo "...done."
 
-timestamps=$(aws s3api list-objects --bucket $bucket --prefix "$prefix" --query 'Contents[].{LastModified: LastModified}')
-recent="$(echo $timestamps | jq -r 'max_by(.LastModified)')"
+# Consider the most recent LastModified timestamp as the most recent version.
+timestamps=$(aws s3api list-objects --bucket $bucket --prefix "$path" --query 'Contents[].{LastModified: LastModified}')
+recent="$(echo $timestamps | jq -r 'max_by(.LastModified).LastModified')"
 
 source "$(dirname $0)/emit.sh" "${recent}" >&3
