@@ -38,4 +38,8 @@ echo "Uploading to S3..."
 eval aws s3 sync $source "s3://$bucket/$path" $options
 echo "...done."
 
-source "$(dirname $0)/emit.sh" >&3
+# Consider the most recent LastModified timestamp as the most recent version.
+timestamps=$(aws s3api list-objects --bucket $bucket --prefix "$prefix" --query 'Contents[].{LastModified: LastModified}')
+recent="$(echo $timestamps | jq -r 'max_by(.LastModified)')"
+
+source "$(dirname $0)/emit.sh" "${recent}" >&3
